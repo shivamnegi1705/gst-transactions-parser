@@ -27,14 +27,6 @@ const ICICI_PERIOD_PATTERN =
 const SIMPLE_TRANSACTION_LINE =
   /^(\d{2}[\/\-]\d{2}[\/\-]\d{4}|\d{4}[\/\-]\d{2}[\/\-]\d{2})\s+(.+?)\s+([-]?\d+(?:\.\d+)?)\s*$/;
 
-/**
- * Regex for ICICI-style transaction lines.
- * Date at start, then description, then optionally deposit and/or withdrawal amounts,
- * then balance. Amounts use Indian comma format like 1,82,196.96
- */
-const ICICI_TRANSACTION_LINE =
-  /^(\d{2}-\d{2}-\d{4})\s+(.+)/;
-
 /** Parse Indian comma-formatted number like "1,82,196.96" or "239.02" */
 function parseIndianNumber(str: string): number {
   return parseFloat(str.replace(/,/g, ''));
@@ -48,13 +40,13 @@ function extractStatementPeriod(pdfText: string): StatementPeriod {
   // Try ICICI explicit period
   const iciciMatch = pdfText.match(ICICI_PERIOD_PATTERN);
   if (iciciMatch) {
-    return { startDate: iciciMatch[1].trim(), endDate: iciciMatch[2].trim() };
+    return { startDate: iciciMatch[1]?.trim() ?? 'Unknown', endDate: iciciMatch[2]?.trim() ?? 'Unknown' };
   }
 
   // Fallback: first and last date in text
   const matches = pdfText.match(DATE_PATTERN) || [];
-  const startDate = matches.length > 0 ? matches[0] : 'Unknown';
-  const endDate = matches.length > 1 ? matches[matches.length - 1] : startDate;
+  const startDate = matches[0] ?? 'Unknown';
+  const endDate = matches.length > 1 ? (matches[matches.length - 1] ?? 'Unknown') : startDate;
   return { startDate, endDate };
 }
 
